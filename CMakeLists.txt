@@ -66,11 +66,8 @@ if(NOT MSVC)
     "Set to ON|OFF (default) to build GEOS with assert() macro enabled" OFF)
 endif()
 
-option(GEOS_BUILD_STATIC
-  "Set to OFF|ON (default) to build GEOS static libraries" ON)
-
-option(GEOS_BUILD_SHARED
-  "Set to OFF|ON (default) to build GEOS shared libraries" ON)
+option(BUILD_SHARED_LIBS
+  "Set to ON|OFF (default) to build GEOS shared libraries" OFF)
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
   option(GEOS_ENABLE_FLOATSTORE
@@ -365,6 +362,42 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
 
 add_custom_target(uninstall
   "${CMAKE_COMMAND}" -P "${PROJECT_BINARY_DIR}/cmake/cmake_uninstall.cmake")
+
+if(NOT GEOS_ENABLE_MACOSX_FRAMEWORK)
+  set(GEOS_TARGETS)
+  if(TARGET geos_cpp)
+    list(APPEND GEOS_TARGETS geos_cpp)
+  endif()
+  if(TARGET geos)
+    list(APPEND GEOS_TARGETS geos)
+  endif()
+
+  if(GEOS_TARGETS)
+    include(GNUInstallDirs)
+    if(WIN32)
+      set(geos_config_dir "cmake")
+    else()
+      set(geos_config_dir "${CMAKE_INSTALL_LIBDIR}/cmake/GEOS")
+    endif()
+
+    include(CMakePackageConfigHelpers)
+
+    configure_package_config_file(
+      "${CMAKE_CURRENT_SOURCE_DIR}/GEOSConfig.cmake.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/GEOSConfig.cmake"
+      INSTALL_DESTINATION "${geos_config_dir}")
+
+    write_basic_package_version_file(
+      ${CMAKE_CURRENT_BINARY_DIR}/GEOSConfigVersion.cmake
+      VERSION "${VERSION}"
+      COMPATIBILITY SameMajorVersion)
+
+    install(FILES
+      ${CMAKE_CURRENT_BINARY_DIR}/GEOSConfig.cmake
+      ${CMAKE_CURRENT_BINARY_DIR}/GEOSConfigVersion.cmake
+      DESTINATION "${geos_config_dir}")
+  endif()
+endif()
 
 #################################################################################
 # DEBUG settings - TODO: make a summary

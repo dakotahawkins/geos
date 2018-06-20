@@ -1,0 +1,25 @@
+@PACKAGE_INIT@
+
+set(GEOS_NAMESPACE_TARGETS)
+set(GEOS_ALL_INCLUDE_DIRS)
+
+foreach(target @GEOS_TARGETS@)
+    include(${CMAKE_CURRENT_LIST_DIR}/${target}ConfigInternal.cmake)
+
+    string(TOUPPER ${target} target_upper)
+    add_library(GEOS::${target_upper} INTERFACE IMPORTED)
+    set_target_properties(GEOS::${target_upper} PROPERTIES INTERFACE_LINK_LIBRARIES geos_${target})
+
+    get_target_property(${target}_INCLUDE_DIRS geos_${target} INTERFACE_INCLUDE_DIRECTORIES)
+
+    list(APPEND GEOS_ALL_INCLUDE_DIRS ${${target}_INCLUDE_DIRS})
+    list(APPEND GEOS_NAMESPACE_TARGETS GEOS::${target_upper})
+endforeach()
+
+list(REMOVE_DUPLICATES GEOS_ALL_INCLUDE_DIRS)
+set(GEOS_INCLUDE_DIRS ${GEOS_ALL_INCLUDE_DIRS})
+
+list(REMOVE_DUPLICATES GEOS_NAMESPACE_TARGETS)
+set(GEOS_LIBRARIES ${GEOS_NAMESPACE_TARGETS})
+
+set(GEOS_VERSION "@VERSION@")

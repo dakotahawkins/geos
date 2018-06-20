@@ -21,11 +21,15 @@ if(GEOS_ENABLE_TESTS)
 
   add_executable(bug234 bug234.cpp)
 
-  if(APPLE AND GEOS_ENABLE_MACOSX_FRAMEWORK) 
-    target_link_libraries(bug234 GEOS) 
-  else() 
-    target_link_libraries(bug234 geos) 
-  endif() 
+  if(APPLE AND GEOS_ENABLE_MACOSX_FRAMEWORK)
+    target_link_libraries(bug234 GEOS)
+  else()
+    if(BUILD_SHARED_LIBS)
+      target_link_libraries(bug234 geos_cpp)
+    else()
+      target_link_libraries(bug234 geos)
+    endif()
+  endif()
 
   add_executable(TestSweepLineSpeed
 	TestSweepLineSpeed.cpp
@@ -34,7 +38,11 @@ if(GEOS_ENABLE_TESTS)
   if(APPLE AND GEOS_ENABLE_MACOSX_FRAMEWORK)
     target_link_libraries(TestSweepLineSpeed GEOS)
   else()
-    target_link_libraries(TestSweepLineSpeed geos)
+    if(BUILD_SHARED_LIBS)
+      target_link_libraries(TestSweepLineSpeed geos_cpp)
+    else()
+      target_link_libraries(TestSweepLineSpeed geos)
+    endif()
   endif()
 
   add_test(bug234 ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/bug234)

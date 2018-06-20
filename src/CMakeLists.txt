@@ -62,37 +62,45 @@ if(GEOS_ENABLE_MACOSX_FRAMEWORK)
 
 else()
 
-  if(GEOS_BUILD_SHARED)
-    add_library(geos SHARED ${geos_SOURCES} ${geos_ALL_HEADERS})
+  include(GNUInstallDirs)
+  if(BUILD_SHARED_LIBS)
+    set(GEOS_TARGET_NAME geos_cpp)
+    add_library(${GEOS_TARGET_NAME} ${geos_SOURCES} ${geos_ALL_HEADERS})
 
-    set_target_properties(geos
+    set_target_properties(${GEOS_TARGET_NAME}
       PROPERTIES
       DEFINE_SYMBOL GEOS_DLL_EXPORT
       VERSION ${VERSION}
       CLEAN_DIRECT_OUTPUT 1)
-
-    install(TARGETS geos
-      RUNTIME DESTINATION bin
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib)
-  endif()
-
-  if(GEOS_BUILD_STATIC)
+  else()
+    set(GEOS_TARGET_NAME geos)
     file(GLOB geos_capi_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/../capi/*.h) # fix source_group issue
-    add_library(geos-static STATIC ${geos_SOURCES} ${geos_c_SOURCES} ${geos_ALL_HEADERS} ${geos_capi_HEADERS})
+    add_library(${GEOS_TARGET_NAME} ${geos_SOURCES} ${geos_c_SOURCES} ${geos_ALL_HEADERS} ${geos_capi_HEADERS})
 
-    set_target_properties(geos-static
+    set_target_properties(${GEOS_TARGET_NAME}
       PROPERTIES
-      OUTPUT_NAME "geos"
-      PREFIX "lib"
+      VERSION ${VERSION}
       CLEAN_DIRECT_OUTPUT 1)
-
-    install(TARGETS geos-static
-      RUNTIME DESTINATION bin
-      LIBRARY DESTINATION lib
-      ARCHIVE DESTINATION lib)
-
   endif()
+
+  if(WIN32)
+    set(geos_config_dir "cmake")
+  else()
+    set(geos_config_dir "${CMAKE_INSTALL_LIBDIR}/cmake/GEOS")
+  endif()
+
+  install(TARGETS ${GEOS_TARGET_NAME}
+    EXPORT ${GEOS_TARGET_NAME}ConfigInternal
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT "runtime"
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+
+  install(EXPORT ${GEOS_TARGET_NAME}ConfigInternal
+    DESTINATION "${geos_config_dir}"
+    NAMESPACE "geos_"
+    COMPONENT "development")
 
 endif() # (GEOS_ENABLE_MACOSX_FRAMEWORK)
 
